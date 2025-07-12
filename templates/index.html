@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced ChatPy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e0a8d1;
+            --secondary-color: #3f37c9;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --user-message-bg: #d7b9ef;
+            --bot-message-bg: #f09ce7;
+            --info-color: #b4cdd5;
+            --success-color: #a3c4ac;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 5px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            background-color: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-message-bg);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--bot-message-bg);
+            color: var(--dark-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .info-message {
+            align-self: center;
+            background-color: var(--info-color);
+            color: white;
+            font-size: 0.8rem;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .timestamp {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: var(--bot-message-bg);
+            color: var(--dark-color);
+            padding: 10px 15px;
+            border-radius: 18px;
+            display: none;
+            margin-bottom: 15px;
+            width: fit-content;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #666;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .input-area {
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        #user-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        #send-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 0 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #send-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        #send-button i {
+            font-size: 1.2rem;
+        }
+
+        /* Quick reply buttons */
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-reply {
+            background-color: var(--light-color);
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-reply:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .message {
+                max-width: 95%;
+                padding: 10px 12px;
+            }
+            
+            .input-area {
+                padding: 10px;
+            }
+            
+            #user-input {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Enhanced ChatPy</h1>
+            <p>Your intelligent AI assistant with NLP capabilities</p>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="typing-indicator" id="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const typingIndicator = document.getElementById('typing-indicator');
+            
+            // Add welcome message
+            addBotMessage("Hello! I'm your enhanced AI assistant. I can answer questions, tell jokes, and even look up information for you. How can I help you today?");
+            
+            // Quick reply suggestions
+            const quickReplies = [
+                "What's the weather like?",
+                "Tell me a joke",
+                "What time is it?",
+                "Who created you?"
+            ];
+            
+            showQuickReplies(quickReplies);
+            
+            // Send message when button is clicked
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Send message when Enter key is pressed
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message === '') return;
+                
+                // Add user message to chat
+                addUserMessage(message);
+                userInput.value = '';
+                
+                // Show typing indicator
+                typingIndicator.style.display = 'flex';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Send message to server
+                fetch('/send_message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `message=${encodeURIComponent(message)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide typing indicator
+                    typingIndicator.style.display = 'none';
+                    
+                    // Add bot response to chat
+                    addBotMessage(data.bot_response, data.timestamp);
+                    
+                    // Show relevant quick replies based on context
+                    updateQuickReplies(data.bot_response);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    typingIndicator.style.display = 'none';
+                    addBotMessage("Sorry, I encountered an error. Please try again.");
+                });
+            }
+            
+            function addUserMessage(message, timestamp = null) {
+                if (!timestamp) {
+                    timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message user-message';
+                messageDiv.innerHTML = `
+                    ${message}
+                    <div class="timestamp">${timestamp}</div>
+                `;
+                
+                chatMessages.insertBefore(messageDiv, typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function addBotMessage(message, timestamp = null) {
+                if (!timestamp) {
+                    timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message bot-message';
+                messageDiv.innerHTML = `
+                    ${message}
+                    <div class="timestamp">${timestamp}</div>
+                `;
+                
+                chatMessages.insertBefore(messageDiv, typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function showQuickReplies(replies) {
+                const quickReplyContainer = document.createElement('div');
+                quickReplyContainer.className = 'quick-replies';
+                
+                replies.forEach(reply => {
+                    const quickReply = document.createElement('div');
+                    quickReply.className = 'quick-reply';
+                    quickReply.textContent = reply;
+                    quickReply.addEventListener('click', function() {
+                        userInput.value = reply;
+                        userInput.focus();
+                    });
+                    quickReplyContainer.appendChild(quickReply);
+                });
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'info-message';
+                infoDiv.textContent = 'Quick suggestions:';
+                
+                chatMessages.appendChild(infoDiv);
+                chatMessages.appendChild(quickReplyContainer);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function updateQuickReplies(botResponse) {
+                // Remove any existing quick replies
+                document.querySelectorAll('.quick-replies, .info-message').forEach(el => el.remove());
+                
+                // Show new quick replies based on context
+                if (botResponse.includes("weather")) {
+                    showQuickReplies([
+                        "Weather in New York",
+                        "Weather in London",
+                        "Weather in Tokyo"
+                    ]);
+                } else if (botResponse.includes("joke")) {
+                    showQuickReplies([
+                        "Tell another joke",
+                        "Funny story",
+                        "Make me laugh"
+                    ]);
+                } else if (botResponse.includes("time")) {
+                    showQuickReplies([
+                        "What's the date?",
+                        "What time is it in London?",
+                        "Set a reminder"
+                    ]);
+                } else {
+                    showQuickReplies([
+                        "Hi?",
+                        "Tell me about AI",
+                        "Whoa are you?"
+                    ]);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
